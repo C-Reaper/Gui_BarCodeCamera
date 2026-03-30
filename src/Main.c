@@ -25,7 +25,7 @@ BarCode_Analyser bca;
 
 void Setup(AlxWindow* w){
     rlc = RLCamera_New(RLCAMERA_DEVICE,RLCAMERA_WIDTH * 2,RLCAMERA_HEIGHT * 2);
-    bca = BarCode_Analyser_New(1.0f,sizeof(codes) / sizeof(*codes),codes);
+    bca = BarCode_Analyser_New(3.0f,sizeof(codes) / sizeof(*codes),codes);
 
     //RLCamera_JPEG_Save(&rlc,"Bild.jpg");
     //window.Running = 0;
@@ -35,24 +35,25 @@ void Update(AlxWindow* w){
     Sprite sp = Sprite_Null();
     sp.img = RLCamera_Get(&rlc,&sp.w,&sp.h);
     
-    //Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
+    Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
     //Sprite trans = ImageFilter_G(&sp);
-    Sprite trans = ImageFilter_G_ImageKernel3x3(&sp,ImageKernel3x3_Sobel_V());
+    //Sprite trans = ImageFilter_G_ImageKernel3x3(&sp,ImageKernel3x3_Sobel_V());
+    //Sprite trans = ImageFilter_C_Motion(&sp,&now,0.65f);
     
-    const float bc_sp_w = (float)sp.w * 0.6f;
-    const float bc_sp_h = (float)sp.w * 0.6f;
-    const float bc_sp_x = ((float)sp.w - bc_sp_w) * 0.5f;
-    const float bc_sp_y = ((float)sp.h - bc_sp_w) * 0.5f;
+    const float bc_sp_w = (float)trans.w * 0.3f;
+    const float bc_sp_h = (float)trans.w * 0.3f;
+    const float bc_sp_x = ((float)trans.w - bc_sp_w) * 0.5f;
+    const float bc_sp_y = ((float)trans.h - bc_sp_w) * 0.5f;
 
-    const float bc_w = (float)GetWidth() * 0.6f;
-    const float bc_h = (float)GetWidth() * 0.6f;
+    const float bc_w = (float)GetWidth() * 0.3f;
+    const float bc_h = (float)GetWidth() * 0.3f;
     const float bc_x = ((float)GetWidth() - bc_w) * 0.5f;
     const float bc_y = ((float)GetHeight() - bc_w) * 0.5f;
 
     if(Stroke(ALX_KEY_1).PRESSED){
         Sprite bc_sp = Sprite_Null();
         
-        Sprite_AppendHSub(&bc_sp,SubSprite_New(&sp,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
+        Sprite_AppendHSub(&bc_sp,SubSprite_New(&trans,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
 
         Sprite_Save(&bc_sp,"./data/BarCode.png");
         Sprite_Free(&bc_sp);
@@ -61,16 +62,16 @@ void Update(AlxWindow* w){
         BarCode bc = Random_u64_MinMax(0,RANDOM_MAX >> 1);
         printf("Make: Bar-Code: %llu | %llx\n",bc,bc);
 
-        Sprite sp = BarCode_Generate(bc,400,200);
-        Sprite_Save(&sp,"./data/BarCodeR.png");
-        Sprite_Free(&sp);
+        Sprite bc_sp = BarCode_Generate(bc,400,200);
+        Sprite_Save(&bc_sp,"./data/BarCodeR.png");
+        Sprite_Free(&bc_sp);
     }
     if(Stroke(ALX_KEY_3).PRESSED){
-        BarCode bc = BarCode_Scan_Path(BarCode_Analyser_Seclection(&bca),"./data/BarCode.png");
+        BarCode bc = BarCode_Scan_Path(BarCode_Analyser_Selection(&bca),"./data/BarCode.png");
         printf("Scan: Bar-Code: %llu | %llx\n",bc,bc);
     }
     if(Stroke(ALX_KEY_4).PRESSED){
-        BarCode bc = BarCode_Scan_Path(BarCode_Analyser_Seclection(&bca),"./data/BarCodeR.png");
+        BarCode bc = BarCode_Scan_Path(BarCode_Analyser_Selection(&bca),"./data/BarCodeR.png");
         printf("Scan: Bar-Code: %llu | %llx\n",bc,bc);
     }
 
@@ -81,38 +82,50 @@ void Update(AlxWindow* w){
             BarCode bc = Random_u64_MinMax(0,RANDOM_MAX >> 1);
             printf("Make: Bar-Code: %llx\n",bc);
             
-            Sprite sp = BarCode_Generate(bc,200,200);
+            Sprite bc_sp = BarCode_Generate(bc,200,200);
             CStr path = CStr_Format("./data/BarCode%d.png",i);
-            Sprite_Save(&sp,path);
+            Sprite_Save(&bc_sp,path);
             CStr_Free(&path);
-            Sprite_Free(&sp);
+            Sprite_Free(&bc_sp);
         }
     }
     
-    
-    BarCode_Analyser_Update(&bca,&sp);
+
+    Sprite bc_sp = Sprite_Null();
+    Sprite_AppendHSub(&bc_sp,SubSprite_New(&trans,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
+    BarCode_Analyser_Update(&bca,&bc_sp);
     
     if(Stroke(ALX_KEY_SPACE).PRESSED){
         BarCode_Analyser_Start(&bca);
     }
+    if(Stroke(ALX_KEY_BACKSPACE).DOWN){
+        BarCode bc = BarCode_Scan(BarCode_Analyser_Selection(&bca),&bc_sp);
+        int i = BarCode_Selection_Find(BarCode_Analyser_Selection(&bca),bc);
+
+        if(bc == BARCODE_ERROR) printf("Error, not found!\n");
+        else                    printf("Output: %llx (%d)\n",bc,i);
+    }
     if(Stroke(ALX_KEY_ENTER).PRESSED){
         if(!BarCode_Analyser_Scanning(&bca)){
             BarCode bc = BarCode_Analyser_Output(&bca);
+            int i = BarCode_Selection_Find(BarCode_Analyser_Selection(&bca),bc);
+
             if(bc == BARCODE_ERROR) printf("Error, not found!\n");
-            else                    printf("Output: %llx\n",bc);
+            else                    printf("Output: %llx (%d)\n",bc,i);
         }
     }
 
 
     Clear(BLACK);
 
-    if(sp.img){
+    if(trans.img){
         //Sprite_Render(WINDOW_STD_ARGS,&sp,0.0f,0.0f);
 	    Sprite_Render(WINDOW_STD_ARGS,&trans,0.0f,0.0f);
-	    
-        Sprite_Free(&trans);
-        Sprite_Free(&sp);
     }
+	    
+    Sprite_Free(&bc_sp);
+    Sprite_Free(&trans);
+    Sprite_Free(&sp);
 
     Rect_RenderXXAlpha(WINDOW_STD_ARGS,bc_x,bc_y,bc_w,bc_h,BarCode_Analyser_Scanning(&bca) ? 0xAA773300 : 0x77773300);
     //RLCamera_JPEG_Save(&rlc,"Bild.jpg");
