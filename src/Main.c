@@ -34,12 +34,12 @@ void Setup(AlxWindow* w){
 void Update(AlxWindow* w){
     Sprite sp = Sprite_Null();
     sp.img = RLCamera_Get(&rlc,&sp.w,&sp.h);
-    
+
     Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
     //Sprite trans = ImageFilter_G(&sp);
     //Sprite trans = ImageFilter_G_ImageKernel3x3(&sp,ImageKernel3x3_Sobel_V());
     //Sprite trans = ImageFilter_C_Motion(&sp,&now,0.65f);
-    
+
     const float bc_sp_w = (float)trans.w * 0.3f;
     const float bc_sp_h = (float)trans.w * 0.3f;
     const float bc_sp_x = ((float)trans.w - bc_sp_w) * 0.5f;
@@ -52,7 +52,7 @@ void Update(AlxWindow* w){
 
     if(Stroke(ALX_KEY_1).PRESSED){
         Sprite bc_sp = Sprite_Null();
-        
+
         Sprite_AppendHSub(&bc_sp,SubSprite_New(&trans,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
 
         Sprite_Save(&bc_sp,"./data/BarCode.png");
@@ -81,7 +81,7 @@ void Update(AlxWindow* w){
 
             BarCode bc = Random_u64_MinMax(0,RANDOM_MAX >> 1);
             printf("Make: Bar-Code: %llx\n",bc);
-            
+
             Sprite bc_sp = BarCode_Generate(bc,200,200);
             CStr path = CStr_Format("./data/BarCode%d.png",i);
             Sprite_Save(&bc_sp,path);
@@ -89,12 +89,11 @@ void Update(AlxWindow* w){
             Sprite_Free(&bc_sp);
         }
     }
-    
 
     Sprite bc_sp = Sprite_Null();
     Sprite_AppendHSub(&bc_sp,SubSprite_New(&trans,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
     BarCode_Analyser_Update(&bca,&bc_sp);
-    
+
     if(Stroke(ALX_KEY_SPACE).PRESSED){
         BarCode_Analyser_Start(&bca);
     }
@@ -115,14 +114,13 @@ void Update(AlxWindow* w){
         }
     }
 
-
     Clear(BLACK);
 
     if(trans.img){
         //Sprite_Render(WINDOW_STD_ARGS,&sp,0.0f,0.0f);
 	    Sprite_Render(WINDOW_STD_ARGS,&trans,0.0f,0.0f);
     }
-	    
+
     Sprite_Free(&bc_sp);
     Sprite_Free(&trans);
     Sprite_Free(&sp);
