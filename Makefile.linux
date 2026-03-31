@@ -1,7 +1,7 @@
 # === Makefile.linux ===
 
 CC = gcc
-CFLAGS = -O3 -mavx2 -std=gnu17
+CFLAGS = -O0 -mavx2 -std=gnu17
 INCLUDES = -Isrc
 LDFLAGS = -lm -lX11 -lpng -ljpeg
 SRC_DIR = src
@@ -14,7 +14,7 @@ OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
 all: $(BUILD_DIR) $(TARGET)
 
 alldebug:
-	$(CC) -g $(CFLAGS) $(INCLUDES) ./$(SRC_DIR)/Main.c -o ./$(TARGET) $(LDFLAGS) 
+	$(CC) -g $(CFLAGS) $(INCLUDES) ./$(SRC_DIR)/Main.c -o ./$(TARGET) $(LDFLAGS)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
