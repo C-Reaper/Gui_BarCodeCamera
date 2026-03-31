@@ -5,27 +5,28 @@
 #include "/home/codeleaded/System/Static/Library/ImageFilter.h"
 
 
-BarCode codes[] = {
-    0x3bcd11bbf0744cffULL,  // 0
-    0x1326e53172768b23ULL,  // 1
-    0x2286fa3ff80dd449ULL,  // 2
-    0x4ca194b3a8a30925ULL,  // 3
-    0x659638ab7f8cf8a3ULL,  // 4
-    0x578fad6f6d6712f7ULL,  // 5
-    0x4ead5338661be08dULL,  // 6
-    0x1c73a8bd4cc4ed18ULL,  // 7
-    0x5338c014469c1687ULL,  // 8
-    0x64ac5f5b0097700aULL,  // 9
-    0x6b8410ae0c454e6cULL,  // 10
-    0x1d352e5ecd16d49fULL   // 11
-};
-
+BarCode_Selection bcs;
 RLCamera rlc;
 BarCode_Analyser bca;
 
 void Setup(AlxWindow* w){
+    bcs = BarCode_Selection_Make((BarCode[]){
+        0x3bcd11bbf0744cffULL,  // 0
+        0x1326e53172768b23ULL,  // 1
+        0x2286fa3ff80dd449ULL,  // 2
+        0x4ca194b3a8a30925ULL,  // 3
+        0x659638ab7f8cf8a3ULL,  // 4
+        0x578fad6f6d6712f7ULL,  // 5
+        0x4ead5338661be08dULL,  // 6
+        0x1c73a8bd4cc4ed18ULL,  // 7
+        0x5338c014469c1687ULL,  // 8
+        0x64ac5f5b0097700aULL,  // 9
+        0x6b8410ae0c454e6cULL,  // 10
+        0x1d352e5ecd16d49fULL,  // 11
+        BARCODE_ERROR
+    });
     rlc = RLCamera_New(RLCAMERA_DEVICE,RLCAMERA_WIDTH * 2,RLCAMERA_HEIGHT * 2);
-    bca = BarCode_Analyser_New(3.0f,sizeof(codes) / sizeof(*codes),codes);
+    bca = BarCode_Analyser_New(3.0f);
 
     //RLCamera_JPEG_Save(&rlc,"Bild.jpg");
     //window.Running = 0;
@@ -67,11 +68,11 @@ void Update(AlxWindow* w){
         Sprite_Free(&bc_sp);
     }
     if(Stroke(ALX_KEY_3).PRESSED){
-        BarCode bc = BarCode_Scan_Path(BarCode_Analyser_Selection(&bca),"./data/BarCode.png");
+        BarCode bc = BarCode_Scan_Path(&bcs,"./data/BarCode.png");
         printf("Scan: Bar-Code: %llu | %llx\n",bc,bc);
     }
     if(Stroke(ALX_KEY_4).PRESSED){
-        BarCode bc = BarCode_Scan_Path(BarCode_Analyser_Selection(&bca),"./data/BarCodeR.png");
+        BarCode bc = BarCode_Scan_Path(&bcs,"./data/BarCodeR.png");
         printf("Scan: Bar-Code: %llu | %llx\n",bc,bc);
     }
 
@@ -92,22 +93,22 @@ void Update(AlxWindow* w){
 
     Sprite bc_sp = Sprite_Null();
     Sprite_AppendHSub(&bc_sp,SubSprite_New(&trans,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
-    BarCode_Analyser_Update(&bca,&bc_sp);
+    BarCode_Analyser_Update(&bca,&bcs,&bc_sp);
 
     if(!BarCode_Analyser_Scanning(&bca) && bca.start != 0UL){
-        BarCode bc = BarCode_Analyser_Output(&bca);
-        int i = BarCode_Selection_Find(BarCode_Analyser_Selection(&bca),bc);
+        BarCode bc = BarCode_Analyser_Output(&bca,&bcs);
+        int i = BarCode_Selection_Find(&bcs,bc);
 
         if(bc == BARCODE_ERROR) printf("Error, not found!\n");
         else                    printf("Output: %llx (%d)\n",bc,i);
     }
 
     if(Stroke(ALX_KEY_SPACE).PRESSED){
-        BarCode_Analyser_Start(&bca);
+        BarCode_Analyser_Start(&bca,bcs.size);
     }
     if(Stroke(ALX_KEY_BACKSPACE).DOWN){
-        BarCode bc = BarCode_Scan(BarCode_Analyser_Selection(&bca),&bc_sp);
-        int i = BarCode_Selection_Find(BarCode_Analyser_Selection(&bca),bc);
+        BarCode bc = BarCode_Scan(&bcs,&bc_sp);
+        int i = BarCode_Selection_Find(&bcs,bc);
 
         if(bc == BARCODE_ERROR) printf("Error, not found!\n");
         else                    printf("Output: %llx (%d)\n",bc,i);
