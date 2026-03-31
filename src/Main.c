@@ -94,6 +94,14 @@ void Update(AlxWindow* w){
     Sprite_AppendHSub(&bc_sp,SubSprite_New(&trans,bc_sp_x,bc_sp_y,bc_sp_w,bc_sp_h));
     BarCode_Analyser_Update(&bca,&bc_sp);
 
+    if(!BarCode_Analyser_Scanning(&bca) && bca.start != 0UL){
+        BarCode bc = BarCode_Analyser_Output(&bca);
+        int i = BarCode_Selection_Find(BarCode_Analyser_Selection(&bca),bc);
+
+        if(bc == BARCODE_ERROR) printf("Error, not found!\n");
+        else                    printf("Output: %llx (%d)\n",bc,i);
+    }
+
     if(Stroke(ALX_KEY_SPACE).PRESSED){
         BarCode_Analyser_Start(&bca);
     }
@@ -103,15 +111,6 @@ void Update(AlxWindow* w){
 
         if(bc == BARCODE_ERROR) printf("Error, not found!\n");
         else                    printf("Output: %llx (%d)\n",bc,i);
-    }
-    if(Stroke(ALX_KEY_ENTER).PRESSED){
-        if(!BarCode_Analyser_Scanning(&bca)){
-            BarCode bc = BarCode_Analyser_Output(&bca);
-            int i = BarCode_Selection_Find(BarCode_Analyser_Selection(&bca),bc);
-
-            if(bc == BARCODE_ERROR) printf("Error, not found!\n");
-            else                    printf("Output: %llx (%d)\n",bc,i);
-        }
     }
 
     Clear(BLACK);
