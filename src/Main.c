@@ -25,7 +25,7 @@ void Setup(AlxWindow* w){
         0x1d352e5ecd16d49fULL,  // 11
         BARCODE_ERROR
     });
-    rlc = RLCamera_New(RLCAMERA_DEVICE,RLCAMERA_WIDTH * 2,RLCAMERA_HEIGHT * 2);
+    rlc = RLCamera_New(RLCAMERA_DEVICE,1920,1080);
     bca = BarCode_Analyser_New(3.0f);
 
     //RLCamera_JPEG_Save(&rlc,"Bild.jpg");
@@ -34,7 +34,7 @@ void Setup(AlxWindow* w){
 
 void Update(AlxWindow* w){
     Sprite sp = Sprite_Null();
-    sp.img = RLCamera_Get(&rlc,&sp.w,&sp.h);
+    sp.img = RLCamera_Get(&rlc,(int*)&sp.w,(int*)&sp.h);
 
     Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
     //Sprite trans = ImageFilter_G(&sp);
@@ -135,7 +135,7 @@ void Delete(AlxWindow* w){
 }
 
 int main(){
-    if(Create("Bar Code Camera",RLCAMERA_WIDTH * 2,RLCAMERA_HEIGHT * 2,1,1,Setup,Update,Delete))
+    if(Create("Bar Code Camera",1920,1080,1,1,Setup,Update,Delete))
         Start();
     return 0;
 }
