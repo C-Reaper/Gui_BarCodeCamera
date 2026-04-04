@@ -36,10 +36,18 @@ void Update(AlxWindow* w){
     Sprite sp = Sprite_Null();
     sp.img = RLCamera_Get(&rlc,(int*)&sp.w,(int*)&sp.h);
 
-    Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
+    //Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
     //Sprite trans = ImageFilter_G(&sp);
     //Sprite trans = ImageFilter_G_ImageKernel3x3(&sp,ImageKernel3x3_Sobel_V());
     //Sprite trans = ImageFilter_C_Motion(&sp,&now,0.65f);
+
+    GSprite gsp = GSprite_BySprite(sp.w,sp.h,sp.img);
+    GSprite gtrans = ImageFilter_G_Edge(&gsp);
+
+    Sprite trans = Sprite_Null();
+    trans.img = GSprite_ToSprite(&gtrans,&trans.w,&trans.h);
+    GSprite_Free(&gtrans);
+    GSprite_Free(&gsp);
 
     const float bc_sp_w = (float)trans.w * 0.3f;
     const float bc_sp_h = (float)trans.w * 0.3f;
