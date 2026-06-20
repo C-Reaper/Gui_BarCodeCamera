@@ -5,6 +5,7 @@
 #include "/home/codeleaded/System/Static/Library/ImageFilter.h"
 
 
+//Sprite prev;
 BarCode_Selection bcs;
 RLCamera rlc;
 BarCode_Analyser bca;
@@ -28,6 +29,8 @@ void Setup(AlxWindow* w){
     rlc = RLCamera_New(RLCAMERA_DEVICE,1920,1080);
     bca = BarCode_Analyser_New(3.0f);
 
+    //prev = Sprite_Null();
+
     //RLCamera_JPEG_Save(&rlc,"Bild.jpg");
     //window.Running = 0;
 }
@@ -35,6 +38,11 @@ void Setup(AlxWindow* w){
 void Update(AlxWindow* w){
     Sprite sp = Sprite_Null();
     sp.img = RLCamera_Get(&rlc,(int*)&sp.w,(int*)&sp.h);
+
+    //if(!prev.img) prev = Sprite_Cpy(&sp);
+    //Sprite nsp = ImageFilter_C_Fade(&prev,&sp,5.0f * w->ElapsedTime);
+    //Sprite_Free(&sp);
+    //sp = nsp;
 
     //Sprite trans = ImageFilter_BW_LN(&sp,0.65f);
     //Sprite trans = ImageFilter_G(&sp);
@@ -46,8 +54,6 @@ void Update(AlxWindow* w){
 
     Sprite trans = Sprite_Null();
     trans.img = GSprite_ToSprite(&gtrans,&trans.w,&trans.h);
-    GSprite_Free(&gtrans);
-    GSprite_Free(&gsp);
 
     const float bc_sp_w = (float)trans.w * 0.3f;
     const float bc_sp_h = (float)trans.w * 0.3f;
@@ -125,20 +131,28 @@ void Update(AlxWindow* w){
     Clear(BLACK);
 
     if(trans.img){
-        //Sprite_Render(WINDOW_STD_ARGS,&sp,0.0f,0.0f);
-	    Sprite_Render(WINDOW_STD_ARGS,&trans,0.0f,0.0f);
+        //GSprite_Render(WINDOW_STD_ARGS,&gsp,0.0f,0.0f);
+        Sprite_Render(WINDOW_STD_ARGS,&sp,0.0f,0.0f);
+	    //Sprite_Render(WINDOW_STD_ARGS,&trans,0.0f,0.0f);
     }
+
+    //GSprite_Free(&gtrans);
+    GSprite_Free(&gsp);
 
     Sprite_Free(&bc_sp);
     Sprite_Free(&trans);
-    Sprite_Free(&sp);
+
+    //Sprite_Free(&prev);
+    //prev = sp;
 
     Rect_RenderXXAlpha(WINDOW_STD_ARGS,bc_x,bc_y,bc_w,bc_h,BarCode_Analyser_Scanning(&bca) ? 0xAA773300 : 0x77773300);
     //RLCamera_JPEG_Save(&rlc,"Bild.jpg");
 }
 
 void Delete(AlxWindow* w){
+    //Sprite_Free(&prev);
     RLCamera_Free(&rlc);
+    BarCode_Selection_Free(&bcs);
     BarCode_Analyser_Free(&bca);
 }
 
